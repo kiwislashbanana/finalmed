@@ -1,4 +1,4 @@
-name: Python CI
+name: Python CI/CD
 
 on:
   push:
@@ -37,3 +37,28 @@ jobs:
     - name: Test with pytest
       run: |
         pytest
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    permissions:
+      contents: write
+      
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Create Documentation
+      run: |
+        mkdir -p docs
+        echo "# Median Calculator" > docs/index.md
+        echo "This project calculates the median of two arrays." >> docs/index.md
+        echo "## Latest Build: $(date)" >> docs/index.md
+        echo "Build successfully passed tests!" >> docs/index.md
+        
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./docs
